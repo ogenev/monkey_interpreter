@@ -9,7 +9,7 @@ struct Lexer<'a> {
     ch: char,           // current char under examination
 }
 
-impl<'a> Lexer <'a>{
+impl<'a> Lexer<'a> {
     fn new(input: &'a str) -> Self {
         let mut l = Lexer {
             input,
@@ -60,4 +60,33 @@ impl<'a> Lexer <'a>{
     }
 }
 
-//todo: Write the lexer test
+#[cfg(test)]
+mod tests {
+    use crate::lexer::Lexer;
+    use crate::token::*;
+
+    #[test]
+    fn next_token() {
+        let input = r#"let five = 5;
+                            let ten = 10;
+
+                            let add = fn(x, y) {
+                            x + y;
+                            };
+
+                            let result = add(five, ten);
+                            "#;
+        let mut l = Lexer::new(&input);
+        let token_types = vec![
+            LET, IDENT, ASSIGN, INT, SEMICOLON, LET, IDENT, ASSIGN, INT, SEMICOLON, LET, IDENT,
+            ASSIGN, FUNCTION, LPAREN, IDENT, COMMA, IDENT, RPAREN, LBRACE, IDENT, PLUS, IDENT,
+            SEMICOLON, RBRACE, SEMICOLON, LET, IDENT, ASSIGN, IDENT, LPAREN, IDENT, COMMA, IDENT,
+            RPAREN, SEMICOLON, EOF,
+        ];
+
+        for ttype in token_types {
+            let tok = l.next_token();
+            assert_eq!(tok.ttype, ttype)
+        }
+    }
+}

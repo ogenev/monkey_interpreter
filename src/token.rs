@@ -17,7 +17,6 @@ pub const RBRACE: &str = "}";
 pub const FUNCTION: &str = "FUNCTION";
 pub const LET: &str = "LET";
 
-
 pub struct Token<'a> {
     pub ttype: &'a str,
     pub literal: String,
