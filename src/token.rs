@@ -21,3 +21,13 @@ pub struct Token<'a> {
     pub ttype: &'a str,
     pub literal: String,
 }
+
+impl<'a> Token<'a> {
+    pub fn lookup_ident(ident: &String) -> &'a str {
+        match ident.as_str() {
+            "fn" => FUNCTION,
+            "let" => LET,
+            _ => IDENT,
+        }
+    }
+}

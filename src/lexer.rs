@@ -20,6 +20,7 @@ impl<'a> Lexer<'a> {
         l.read_char();
         l
     }
+
     fn read_char(&mut self) {
         if self.read_position >= self.input.chars().count() as u32 {
             self.ch = '\0';
@@ -33,6 +34,7 @@ impl<'a> Lexer<'a> {
         self.position = self.read_position;
         self.read_position += 1;
     }
+
     fn next_token(&mut self) -> Token {
         let tok: token::Token = match self.ch {
             '=' => self.new_token(token::ASSIGN, self.ch),
@@ -47,11 +49,45 @@ impl<'a> Lexer<'a> {
                 ttype: token::EOF,
                 literal: String::from(""),
             },
-            _ => self.new_token(token::ILLEGAL, self.ch),
+            _ => {
+                if self.ch.is_alphabetic() {
+                    // Create blank token
+                    let mut tok = self.new_token("", '\0');
+                    tok.literal = self.read_identifier();
+                    tok.ttype = Token::lookup_ident(&tok.literal);
+                    tok
+                } else {
+                    self.new_token(token::ILLEGAL, self.ch)
+                }
+            }
         };
         self.read_char();
         tok
     }
+
+    fn is_letter(&self, ch: char) -> bool {
+        if ch.is_ascii_alphabetic() || ch == '_' {
+            true
+        } else {
+            false
+        }
+    }
+
+    fn read_identifier(&mut self) -> String {
+        let position = self.position;
+
+        loop {
+            if self.is_letter(self.ch) {
+                self.read_char();
+            } else {
+                break;
+            }
+        }
+
+        let result = String::from(self.input);
+        result[position as usize..self.position as usize].to_string()
+    }
+
     fn new_token(&self, ttype: &'a str, ch: char) -> token::Token<'a> {
         token::Token {
             ttype,
