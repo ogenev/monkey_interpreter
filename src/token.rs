@@ -17,11 +17,8 @@ pub const RBRACE: &str = "}";
 pub const FUNCTION: &str = "FUNCTION";
 pub const LET: &str = "LET";
 
-pub enum TokenType<'a> {
-    Type(&'a str),
-}
 
 pub struct Token<'a> {
-    pub ttype: TokenType<'a>,
+    pub ttype: &'a str,
     pub literal: String,
 }
