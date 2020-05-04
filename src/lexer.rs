@@ -1,5 +1,4 @@
-use crate::token;
-use crate::token::Token;
+use crate::token::*;
 use std::convert::TryInto;
 
 struct Lexer<'a> {
@@ -36,28 +35,28 @@ impl<'a> Lexer<'a> {
     }
 
     fn next_token(&mut self) -> Token {
-        let tok: token::Token = match self.ch {
-            '=' => self.new_token(token::ASSIGN, self.ch),
-            ';' => self.new_token(token::SEMICOLON, self.ch),
-            '(' => self.new_token(token::LPAREN, self.ch),
-            ')' => self.new_token(token::RPAREN, self.ch),
-            ',' => self.new_token(token::COMMA, self.ch),
-            '+' => self.new_token(token::PLUS, self.ch),
-            '{' => self.new_token(token::LBRACE, self.ch),
-            '}' => self.new_token(token::RBRACE, self.ch),
+        let tok: Token = match self.ch {
+            '=' => self.new_token(ASSIGN, self.ch),
+            ';' => self.new_token(SEMICOLON, self.ch),
+            '(' => self.new_token(LPAREN, self.ch),
+            ')' => self.new_token(RPAREN, self.ch),
+            ',' => self.new_token(COMMA, self.ch),
+            '+' => self.new_token(PLUS, self.ch),
+            '{' => self.new_token(LBRACE, self.ch),
+            '}' => self.new_token(RBRACE, self.ch),
             '\0' => Token {
-                ttype: token::EOF,
+                ttype: EOF,
                 literal: String::from(""),
             },
             _ => {
                 if self.ch.is_alphabetic() {
                     // Create blank token
-                    let mut tok = self.new_token("", '\0');
+                    let mut tok = self.new_token(TokenType::IDENT(""), '\0');
                     tok.literal = self.read_identifier();
                     tok.ttype = Token::lookup_ident(&tok.literal);
                     tok
                 } else {
-                    self.new_token(token::ILLEGAL, self.ch)
+                    self.new_token(ILLEGAL, self.ch)
                 }
             }
         };
@@ -88,8 +87,8 @@ impl<'a> Lexer<'a> {
         result[position as usize..self.position as usize].to_string()
     }
 
-    fn new_token(&self, ttype: &'a str, ch: char) -> token::Token<'a> {
-        token::Token {
+    fn new_token(&self, ttype: TokenType<'a>, ch: char) -> Token<'a> {
+        Token {
             ttype,
             literal: ch.to_string(),
         }
@@ -120,9 +119,9 @@ mod tests {
             RPAREN, SEMICOLON, EOF,
         ];
 
-        for ttype in token_types {
+        for token_type in token_types {
             let tok = l.next_token();
-            assert_eq!(tok.ttype, ttype)
+            assert_eq!(tok.ttype, token_type)
         }
     }
 }
