@@ -20,6 +20,7 @@ impl<'a> Lexer<'a> {
         l
     }
 
+    // Read the current character
     fn read_char(&mut self) {
         if self.read_position >= self.input.chars().count() as u32 {
             self.ch = '\0';
@@ -34,36 +35,99 @@ impl<'a> Lexer<'a> {
         self.read_position += 1;
     }
 
+    // Skip the whitespace characters in the input
+    fn skip_whitespace(&mut self) {
+        while self.ch == ' ' || self.ch == '\t' || self.ch == '\n' || self.ch == '\r' {
+            self.read_char();
+        }
+    }
+
+    // Main method which return the next token from the input.
     fn next_token(&mut self) -> Token {
-        let tok: Token = match self.ch {
-            '=' => self.new_token(ASSIGN, self.ch),
-            ';' => self.new_token(SEMICOLON, self.ch),
-            '(' => self.new_token(LPAREN, self.ch),
-            ')' => self.new_token(RPAREN, self.ch),
-            ',' => self.new_token(COMMA, self.ch),
-            '+' => self.new_token(PLUS, self.ch),
-            '{' => self.new_token(LBRACE, self.ch),
-            '}' => self.new_token(RBRACE, self.ch),
+        self.skip_whitespace(); // We need to skip the whitespace and the new lines from the input
+
+        match self.ch {
+            '=' => {
+                let tok = self.new_token(ASSIGN, self.ch);
+                self.read_char();
+                tok
+            }
+            ';' => {
+                let tok = self.new_token(SEMICOLON, self.ch);
+                self.read_char();
+                tok
+            }
+            '(' => {
+                let tok = self.new_token(LPAREN, self.ch);
+                self.read_char();
+                tok
+            }
+            ')' => {
+                let tok = self.new_token(RPAREN, self.ch);
+                self.read_char();
+                tok
+            }
+            ',' => {
+                let tok = self.new_token(COMMA, self.ch);
+                self.read_char();
+                tok
+            }
+            '+' => {
+                let tok = self.new_token(PLUS, self.ch);
+                self.read_char();
+                tok
+            }
+            '{' => {
+                let tok = self.new_token(LBRACE, self.ch);
+                self.read_char();
+                tok
+            }
+            '}' => {
+                let tok = self.new_token(RBRACE, self.ch);
+                self.read_char();
+                tok
+            }
+            // This happens when there is no more characters i.e. end of the input
             '\0' => Token {
                 ttype: EOF,
                 literal: String::from(""),
             },
             _ => {
+                let mut tok = Token::new();
+
                 if self.ch.is_alphabetic() {
-                    // Create blank token
-                    let mut tok = self.new_token(TokenType::IDENT(""), '\0');
+                    // Some words are specific for the language(keywords) and we need to distinguish
+                    // that from the identifiers chosen by the user(function names, variables, etc).
+                    // We need to lookup every word if it matches any of the keywords
                     tok.literal = self.read_identifier();
                     tok.ttype = Token::lookup_ident(&tok.literal);
                     tok
+                } else if self.ch.is_numeric() {
+                    // Any consecutive digits(0-9) are matched as single INT token
+                    tok.ttype = INT;
+                    tok.literal = self.read_number();
+                    tok
                 } else {
+                    // Map any unrecognizable char as illegal
                     self.new_token(ILLEGAL, self.ch)
                 }
             }
-        };
-        self.read_char();
-        tok
+        }
     }
 
+    // Return a number if consecutive digits(0-9) are found
+    fn read_number(&mut self) -> String {
+        let position = self.position;
+
+        while self.ch.is_numeric() {
+            self.read_char()
+        }
+
+        let result = String::from(self.input);
+        result[position as usize..self.position as usize].to_string()
+    }
+
+    // Underscore is also treated as a letter
     fn is_letter(&self, ch: char) -> bool {
         if ch.is_ascii_alphabetic() || ch == '_' {
             true
@@ -72,6 +136,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    // Read consecutive letters and return identifier
     fn read_identifier(&mut self) -> String {
         let position = self.position;
 
@@ -100,6 +165,7 @@ mod tests {
     use crate::lexer::Lexer;
     use crate::token::*;
 
+    // Testing the monkey language tokens
     #[test]
     fn next_token() {
         let input = r#"let five = 5;
@@ -111,6 +177,7 @@ mod tests {
 
                             let result = add(five, ten);
                             "#;
+
         let mut l = Lexer::new(&input);
         let token_types = vec![
             LET, IDENT, ASSIGN, INT, SEMICOLON, LET, IDENT, ASSIGN, INT, SEMICOLON, LET, IDENT,

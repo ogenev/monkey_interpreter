@@ -40,6 +40,12 @@ pub struct Token<'a> {
 }
 
 impl<'a> Token<'a> {
+    pub fn new() -> Self {
+        Token {
+            ttype: TokenType::IDENT(""),
+            literal: String::from(""),
+        }
+    }
     pub fn lookup_ident(ident: &String) -> TokenType<'a> {
         match ident.as_str() {
             "fn" => FUNCTION,
