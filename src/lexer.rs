@@ -77,6 +77,36 @@ impl<'a> Lexer<'a> {
                 self.read_char();
                 tok
             }
+            '*' => {
+                let tok = self.new_token(ASTERISK, self.ch);
+                self.read_char();
+                tok
+            }
+            '-' => {
+                let tok = self.new_token(MINUS, self.ch);
+                self.read_char();
+                tok
+            }
+            '!' => {
+                let tok = self.new_token(BANG, self.ch);
+                self.read_char();
+                tok
+            }
+            '/' => {
+                let tok = self.new_token(SLASH, self.ch);
+                self.read_char();
+                tok
+            }
+            '<' => {
+                let tok = self.new_token(LT, self.ch);
+                self.read_char();
+                tok
+            }
+            '>' => {
+                let tok = self.new_token(GT, self.ch);
+                self.read_char();
+                tok
+            }
             '{' => {
                 let tok = self.new_token(LBRACE, self.ch);
                 self.read_char();
@@ -176,6 +206,14 @@ mod tests {
                             };
 
                             let result = add(five, ten);
+                            !-/*5;
+                            5 < 10 > 5;
+
+                            if (5 < 10) {
+                                return true;
+                            } else {
+                                return false;
+                            }
                             "#;
 
         let mut l = Lexer::new(&input);
@@ -183,7 +221,9 @@ mod tests {
             LET, IDENT, ASSIGN, INT, SEMICOLON, LET, IDENT, ASSIGN, INT, SEMICOLON, LET, IDENT,
             ASSIGN, FUNCTION, LPAREN, IDENT, COMMA, IDENT, RPAREN, LBRACE, IDENT, PLUS, IDENT,
             SEMICOLON, RBRACE, SEMICOLON, LET, IDENT, ASSIGN, IDENT, LPAREN, IDENT, COMMA, IDENT,
-            RPAREN, SEMICOLON, EOF,
+            RPAREN, SEMICOLON, BANG, MINUS, SLASH, ASTERISK, INT, SEMICOLON, INT, LT, INT, GT, INT,
+            SEMICOLON, IF, LPAREN, INT, LT, INT, RPAREN, LBRACE, RETURN, TRUE, SEMICOLON, RBRACE,
+            ELSE, LBRACE, RETURN, FALSE, SEMICOLON, RBRACE, EOF,
         ];
 
         for token_type in token_types {

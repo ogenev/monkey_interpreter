@@ -4,6 +4,12 @@ pub const IDENT: TokenType = TokenType::IDENT("IDENT");
 pub const INT: TokenType = TokenType::INT("INT");
 pub const ASSIGN: TokenType = TokenType::ASSIGN("=");
 pub const PLUS: TokenType = TokenType::PLUS("+");
+pub const MINUS: TokenType = TokenType::MINUS("-");
+pub const BANG: TokenType = TokenType::BANG("!");
+pub const ASTERISK: TokenType = TokenType::ASTERISK("*");
+pub const SLASH: TokenType = TokenType::SLASH("/");
+pub const LT: TokenType = TokenType::LT("<");
+pub const GT: TokenType = TokenType::GT(">");
 pub const COMMA: TokenType = TokenType::COMMA(",");
 pub const SEMICOLON: TokenType = TokenType::SEMICOLON(";");
 pub const LPAREN: TokenType = TokenType::LPAREN("(");
@@ -12,6 +18,11 @@ pub const LBRACE: TokenType = TokenType::LBRACE("{");
 pub const RBRACE: TokenType = TokenType::RBRACE("}");
 pub const FUNCTION: TokenType = TokenType::FUNCTION("FUNCTION");
 pub const LET: TokenType = TokenType::LET("LET");
+pub const TRUE: TokenType = TokenType::TRUE("TRUE");
+pub const FALSE: TokenType = TokenType::FALSE("FALSE");
+pub const IF: TokenType = TokenType::IF("IF");
+pub const ELSE: TokenType = TokenType::ELSE("ELSE");
+pub const RETURN: TokenType = TokenType::RETURN("RETURN");
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum TokenType<'a> {
@@ -23,6 +34,12 @@ pub enum TokenType<'a> {
     // Operators
     ASSIGN(&'a str),
     PLUS(&'a str),
+    MINUS(&'a str),
+    BANG(&'a str),
+    ASTERISK(&'a str),
+    SLASH(&'a str),
+    LT(&'a str),
+    GT(&'a str),
     // Delimiters
     COMMA(&'a str),
     SEMICOLON(&'a str),
@@ -33,6 +50,11 @@ pub enum TokenType<'a> {
     RBRACE(&'a str),
     FUNCTION(&'a str),
     LET(&'a str),
+    TRUE(&'a str),
+    FALSE(&'a str),
+    IF(&'a str),
+    ELSE(&'a str),
+    RETURN(&'a str),
 }
 pub struct Token<'a> {
     pub ttype: TokenType<'a>,
@@ -50,6 +72,11 @@ impl<'a> Token<'a> {
         match ident.as_str() {
             "fn" => FUNCTION,
             "let" => LET,
+            "true" => TRUE,
+            "false" => FALSE,
+            "if" => IF,
+            "else" => ELSE,
+            "return" => RETURN,
             _ => IDENT,
         }
     }
