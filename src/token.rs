@@ -3,6 +3,8 @@ pub const EOF: TokenType = TokenType::EOF("EOF");
 pub const IDENT: TokenType = TokenType::IDENT("IDENT");
 pub const INT: TokenType = TokenType::INT("INT");
 pub const ASSIGN: TokenType = TokenType::ASSIGN("=");
+pub const EQ: TokenType = TokenType::EQ("==");
+pub const NOTEQ: TokenType = TokenType::NOTEQ("!=");
 pub const PLUS: TokenType = TokenType::PLUS("+");
 pub const MINUS: TokenType = TokenType::MINUS("-");
 pub const BANG: TokenType = TokenType::BANG("!");
@@ -33,6 +35,8 @@ pub enum TokenType<'a> {
     INT(&'a str),   // 1343456
     // Operators
     ASSIGN(&'a str),
+    EQ(&'a str),
+    NOTEQ(&'a str),
     PLUS(&'a str),
     MINUS(&'a str),
     BANG(&'a str),

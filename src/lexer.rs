@@ -3,9 +3,9 @@ use std::convert::TryInto;
 
 struct Lexer<'a> {
     input: &'a str,
-    position: u32,      // current position in input (points to current char)
-    read_position: u32, // current reading position in input (after current char)
-    ch: char,           // current char under examination
+    position: usize,      // current position in input (points to current char)
+    read_position: usize, // current reading position in input (after current char)
+    ch: char,             // current char under examination
 }
 
 impl<'a> Lexer<'a> {
@@ -22,7 +22,7 @@ impl<'a> Lexer<'a> {
 
     // Read the current character
     fn read_char(&mut self) {
-        if self.read_position >= self.input.chars().count() as u32 {
+        if self.read_position >= self.input.chars().count() {
             self.ch = '\0';
         } else {
             self.ch = self
@@ -48,9 +48,20 @@ impl<'a> Lexer<'a> {
 
         match self.ch {
             '=' => {
-                let tok = self.new_token(ASSIGN, self.ch);
-                self.read_char();
-                tok
+                if self.peek_char() == '=' {
+                    let ch = self.ch;
+                    self.read_char();
+                    let mut tok = self.new_token(EQ, ch);
+                    let mut new_literal = ch.to_string();
+                    new_literal.push(self.ch);
+                    tok.literal = new_literal;
+                    self.read_char();
+                    tok
+                } else {
+                    let tok = self.new_token(ASSIGN, self.ch);
+                    self.read_char();
+                    tok
+                }
             }
             ';' => {
                 let tok = self.new_token(SEMICOLON, self.ch);
@@ -88,9 +99,20 @@ impl<'a> Lexer<'a> {
                 tok
             }
             '!' => {
-                let tok = self.new_token(BANG, self.ch);
-                self.read_char();
-                tok
+                if self.peek_char() == '=' {
+                    let ch = self.ch;
+                    self.read_char();
+                    let mut tok = self.new_token(NOTEQ, ch);
+                    let mut new_literal = ch.to_string();
+                    new_literal.push(self.ch);
+                    tok.literal = new_literal;
+                    self.read_char();
+                    tok
+                } else {
+                    let tok = self.new_token(BANG, self.ch);
+                    self.read_char();
+                    tok
+                }
             }
             '/' => {
                 let tok = self.new_token(SLASH, self.ch);
@@ -154,7 +176,7 @@ impl<'a> Lexer<'a> {
         }
 
         let result = String::from(self.input);
-        result[position as usize..self.position as usize].to_string()
+        result[position..self.position].to_string()
     }
 
     // Underscore is also treated as a letter
@@ -179,13 +201,20 @@ impl<'a> Lexer<'a> {
         }
 
         let result = String::from(self.input);
-        result[position as usize..self.position as usize].to_string()
+        result[position..self.position].to_string()
     }
 
     fn new_token(&self, ttype: TokenType<'a>, ch: char) -> Token<'a> {
         Token {
             ttype,
             literal: ch.to_string(),
+        }
+    }
+    fn peek_char(&self) -> char {
+        if self.read_position >= self.input.chars().count() {
+            '\0'
+        } else {
+            self.input.chars().nth(self.read_position).unwrap()
         }
     }
 }
@@ -200,7 +229,6 @@ mod tests {
     fn next_token() {
         let input = r#"let five = 5;
                             let ten = 10;
-
                             let add = fn(x, y) {
                             x + y;
                             };
@@ -214,6 +242,9 @@ mod tests {
                             } else {
                                 return false;
                             }
+
+                            10 == 10;
+                            10 != 9;
                             "#;
 
         let mut l = Lexer::new(&input);
@@ -223,11 +254,13 @@ mod tests {
             SEMICOLON, RBRACE, SEMICOLON, LET, IDENT, ASSIGN, IDENT, LPAREN, IDENT, COMMA, IDENT,
             RPAREN, SEMICOLON, BANG, MINUS, SLASH, ASTERISK, INT, SEMICOLON, INT, LT, INT, GT, INT,
             SEMICOLON, IF, LPAREN, INT, LT, INT, RPAREN, LBRACE, RETURN, TRUE, SEMICOLON, RBRACE,
-            ELSE, LBRACE, RETURN, FALSE, SEMICOLON, RBRACE, EOF,
+            ELSE, LBRACE, RETURN, FALSE, SEMICOLON, RBRACE, INT, EQ, INT, SEMICOLON, INT, NOTEQ,
+            INT, SEMICOLON, EOF
         ];
 
         for token_type in token_types {
             let tok = l.next_token();
+            println!("{:?}", tok.ttype);
             assert_eq!(tok.ttype, token_type)
         }
     }
