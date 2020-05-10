@@ -1,7 +1,7 @@
 use crate::token::*;
 use std::convert::TryInto;
 
-struct Lexer<'a> {
+pub struct Lexer<'a> {
     input: &'a str,
     position: usize,      // current position in input (points to current char)
     read_position: usize, // current reading position in input (after current char)
@@ -9,7 +9,7 @@ struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    fn new(input: &'a str) -> Self {
+    pub fn new(input: &'a str) -> Self {
         let mut l = Lexer {
             input,
             position: 0,
@@ -43,7 +43,7 @@ impl<'a> Lexer<'a> {
     }
 
     // Main method which return the next token from the input.
-    fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> Token {
         self.skip_whitespace(); // We need to skip the whitespace and the new lines from the input
 
         match self.ch {
@@ -161,7 +161,9 @@ impl<'a> Lexer<'a> {
                     tok
                 } else {
                     // Map any unrecognizable char as illegal
-                    self.new_token(ILLEGAL, self.ch)
+                    let tok = self.new_token(ILLEGAL, self.ch);
+                    self.read_char();
+                    tok
                 }
             }
         }
@@ -255,7 +257,7 @@ mod tests {
             RPAREN, SEMICOLON, BANG, MINUS, SLASH, ASTERISK, INT, SEMICOLON, INT, LT, INT, GT, INT,
             SEMICOLON, IF, LPAREN, INT, LT, INT, RPAREN, LBRACE, RETURN, TRUE, SEMICOLON, RBRACE,
             ELSE, LBRACE, RETURN, FALSE, SEMICOLON, RBRACE, INT, EQ, INT, SEMICOLON, INT, NOTEQ,
-            INT, SEMICOLON, EOF
+            INT, SEMICOLON, EOF,
         ];
 
         for token_type in token_types {

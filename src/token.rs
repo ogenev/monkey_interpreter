@@ -60,6 +60,8 @@ pub enum TokenType<'a> {
     ELSE(&'a str),
     RETURN(&'a str),
 }
+
+#[derive(Debug)]
 pub struct Token<'a> {
     pub ttype: TokenType<'a>,
     pub literal: String,
