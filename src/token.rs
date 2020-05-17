@@ -26,7 +26,7 @@ pub const IF: TokenType = TokenType::IF("IF");
 pub const ELSE: TokenType = TokenType::ELSE("ELSE");
 pub const RETURN: TokenType = TokenType::RETURN("RETURN");
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum TokenType<'a> {
     ILLEGAL(&'a str),
     EOF(&'a str),
@@ -61,7 +61,7 @@ pub enum TokenType<'a> {
     RETURN(&'a str),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token<'a> {
     pub ttype: TokenType<'a>,
     pub literal: String,

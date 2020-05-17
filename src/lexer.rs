@@ -43,7 +43,7 @@ impl<'a> Lexer<'a> {
     }
 
     // Main method which return the next token from the input.
-    pub fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> Token<'a> {
         self.skip_whitespace(); // We need to skip the whitespace and the new lines from the input
 
         match self.ch {
@@ -177,8 +177,7 @@ impl<'a> Lexer<'a> {
             self.read_char()
         }
 
-        let result = String::from(self.input);
-        result[position..self.position].to_string()
+        self.input[position..self.position].to_string()
     }
 
     // Underscore is also treated as a letter
@@ -202,8 +201,7 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        let result = String::from(self.input);
-        result[position..self.position].to_string()
+        self.input[position..self.position].to_string()
     }
 
     fn new_token(&self, ttype: TokenType<'a>, ch: char) -> Token<'a> {

@@ -7,23 +7,22 @@ trait Node {
 struct Statement<'a> {
     token: Token<'a>,
     name: Identifier<'a>,
-    value: Experession
+    value: Experession,
 }
 
-struct Experession {
-}
+struct Experession {}
 
 struct Identifier<'a> {
     token: Token<'a>,
-    value: String
+    value: String,
 }
 
 impl Identifier<'_> {
     fn expression_node() {}
 }
 
-struct Program<'a> {
-    statements: Vec<Statement<'a>>
+pub struct Program<'a> {
+    statements: Vec<Statement<'a>>,
 }
 
 impl Node for Identifier<'_> {
@@ -44,6 +43,6 @@ impl Node for Program<'_> {
             self.statements[0].token_literal()
         } else {
             String::from("")
+        };
     }
-}
 }
