@@ -260,7 +260,6 @@ mod tests {
 
         for token_type in token_types {
             let tok = l.next_token();
-            println!("{:?}", tok.ttype);
             assert_eq!(tok.ttype, token_type)
         }
     }
