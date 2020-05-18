@@ -4,15 +4,17 @@ trait Node {
     fn token_literal(&self) -> String;
 }
 
-struct Statement<'a> {
-    token: Token<'a>,
-    name: Identifier<'a>,
-    value: Experession,
+trait Statement {}
+
+pub struct LetStatement<'a> {
+    pub token: Token<'a>,
+    pub name: Option<Identifier<'a>>,
+    pub value: Option<Experession>,
 }
 
-struct Experession {}
+pub struct Experession {}
 
-struct Identifier<'a> {
+pub struct Identifier<'a> {
     token: Token<'a>,
     value: String,
 }
@@ -22,7 +24,7 @@ impl Identifier<'_> {
 }
 
 pub struct Program<'a> {
-    statements: Vec<Statement<'a>>,
+    pub statements: Vec<LetStatement<'a>>,
 }
 
 impl Node for Identifier<'_> {
@@ -31,11 +33,13 @@ impl Node for Identifier<'_> {
     }
 }
 
-impl Node for Statement<'_> {
+impl Node for LetStatement<'_> {
     fn token_literal(&self) -> String {
         self.token.literal.clone()
     }
 }
+
+impl Statement for LetStatement<'_> {}
 
 impl Node for Program<'_> {
     fn token_literal(&self) -> String {
@@ -44,5 +48,11 @@ impl Node for Program<'_> {
         } else {
             String::from("")
         };
+    }
+}
+
+impl<'a> Program<'a> {
+    pub fn new() -> Program<'a> {
+        Program { statements: vec![] }
     }
 }
