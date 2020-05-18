@@ -1,5 +1,4 @@
-use crate::ast;
-use crate::ast::Program;
+use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::token::*;
 
@@ -24,7 +23,7 @@ impl<'a> Parser<'a> {
         self.cur_token = self.peek_token.clone();
         self.peek_token = self.l.next_token();
     }
-    pub fn parse_program(&mut self) -> ast::Program<'a> {
+    pub fn parse_program(&mut self) -> Program<'a> {
         let mut program = Program::new();
 
         while self.cur_token.ttype != EOF {
@@ -36,19 +35,29 @@ impl<'a> Parser<'a> {
         }
         program
     }
-    fn parse_statement(&mut self) -> Option<ast::LetStatement<'a>> {
+    fn parse_statement(&mut self) -> Option<LetStatement<'a>> {
         match self.cur_token.ttype {
             LET => self.parse_let_statement(),
             _ => None,
         }
     }
-    fn parse_let_statement(&mut self) -> Option<ast::LetStatement<'a>> {
-        let stmt = ast::LetStatement {
+    fn parse_let_statement(&mut self) -> Option<LetStatement<'a>> {
+        let mut stmt = LetStatement {
             token: self.cur_token.clone(),
             name: None,
             value: None,
         };
-        if self.expect_peek(ASSIGN) {
+
+        if !self.expect_peek(IDENT) {
+            return None;
+        }
+
+        stmt.name = Some(Identifier {
+            token: self.cur_token.clone(),
+            value: self.cur_token.literal.clone(),
+        });
+
+        if !self.expect_peek(ASSIGN) {
             return None;
         }
         // TODO: We're skipping the expressions until we encounter a semicolon
@@ -76,8 +85,6 @@ impl<'a> Parser<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast;
-    use crate::lexer::Lexer;
 
     #[test]
     fn let_statements() {
@@ -85,8 +92,51 @@ mod tests {
                           let y = 10;
                           let foobar = 838383;";
         let l = Lexer::new(input);
-        let p = Parser::new(l);
-        let program = Some(p.parse_progam());
-        assert_eq!(program, Some(program), "ParseProgram() returned nil");
+        let mut p = Parser::new(l);
+        let program = p.parse_program();
+        assert_eq!(
+            program.statements.len(),
+            3,
+            "Program.statements does not contain 3 statements got={}",
+            program.statements.len()
+        );
+
+        struct ExpectedIdentifier<'a> {
+            value: &'a str,
+        }
+
+        let tests = vec![
+            ExpectedIdentifier { value: "x" },
+            ExpectedIdentifier { value: "y" },
+            ExpectedIdentifier { value: "foobar" },
+        ];
+
+        for (i, tt) in tests.iter().enumerate() {
+            let stmt = &program.statements[i];
+            println!("{:?}", stmt);
+
+            assert_eq!(
+                stmt.token.literal,
+                String::from("let"),
+                "s.token.literal not 'let'. got={}",
+                stmt.token.literal
+            );
+
+            assert_eq!(
+                stmt.name.as_ref().unwrap().value.to_string(),
+                tt.value,
+                "stmt.Name.Value not'{}'.got={}",
+                tt.value,
+                stmt.name.as_ref().unwrap().value.to_string()
+            );
+
+            assert_eq!(
+                stmt.name.as_ref().unwrap().token.literal.to_string(),
+                tt.value,
+                "s.name not '{}'. got={}",
+                tt.value,
+                stmt.name.as_ref().unwrap().token.literal.to_string(),
+            )
+        }
     }
 }

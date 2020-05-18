@@ -61,7 +61,7 @@ pub enum TokenType<'a> {
     RETURN(&'a str),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub struct Token<'a> {
     pub ttype: TokenType<'a>,
     pub literal: String,

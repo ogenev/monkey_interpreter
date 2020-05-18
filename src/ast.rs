@@ -6,31 +6,35 @@ trait Node {
 
 trait Statement {}
 
+#[derive(Eq, PartialEq, Debug)]
 pub struct LetStatement<'a> {
     pub token: Token<'a>,
     pub name: Option<Identifier<'a>>,
     pub value: Option<Experession>,
 }
 
+#[derive(Eq, PartialEq, Debug)]
 pub struct Experession {}
 
+#[derive(Eq, PartialEq, Debug)]
 pub struct Identifier<'a> {
-    token: Token<'a>,
-    value: String,
+    pub token: Token<'a>,
+    pub value: String,
 }
 
 impl Identifier<'_> {
     fn expression_node() {}
 }
 
-pub struct Program<'a> {
-    pub statements: Vec<LetStatement<'a>>,
-}
-
 impl Node for Identifier<'_> {
     fn token_literal(&self) -> String {
         self.token.literal.clone()
     }
+}
+
+#[derive(Eq, PartialEq, Debug)]
+pub struct Program<'a> {
+    pub statements: Vec<LetStatement<'a>>,
 }
 
 impl Node for LetStatement<'_> {

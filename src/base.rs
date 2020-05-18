@@ -15,6 +15,7 @@ fn main() {
 mod tests {
     use crate::base;
     #[test]
+    #[ignore]
     fn repl() {
         base::main();
     }
