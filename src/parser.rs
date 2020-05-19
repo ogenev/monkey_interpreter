@@ -223,6 +223,7 @@ mod tests {
                     "returnStmt.TokenLiteral not 'return', got {}",
                     x.token.literal
                 ),
+                _ => (),
             }
         }
     }
