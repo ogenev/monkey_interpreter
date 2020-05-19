@@ -21,9 +21,11 @@ impl<'a> Parser<'a> {
         p.next_token();
         p
     }
+
     fn errors(&self) -> &Vec<String> {
         &self.errors
     }
+
     fn next_token(&mut self) {
         self.cur_token = self.peek_token.clone();
         self.peek_token = self.l.next_token();
@@ -40,13 +42,16 @@ impl<'a> Parser<'a> {
         }
         program
     }
-    fn parse_statement(&mut self) -> Option<LetStatement<'a>> {
+
+    fn parse_statement(&mut self) -> Option<Statement<'a>> {
         match self.cur_token.ttype {
             LET => self.parse_let_statement(),
+            RETURN => self.parse_return_statement(),
             _ => None,
         }
     }
-    fn parse_let_statement(&mut self) -> Option<LetStatement<'a>> {
+
+    fn parse_let_statement(&mut self) -> Option<Statement<'a>> {
         let mut stmt = LetStatement {
             token: self.cur_token.clone(),
             name: None,
@@ -69,14 +74,32 @@ impl<'a> Parser<'a> {
         while self.cur_token_is(SEMICOLON) {
             self.next_token();
         }
-        Some(stmt)
+        Some(Statement::LetStatement(stmt))
     }
+
+    fn parse_return_statement(&mut self) -> Option<Statement<'a>> {
+        let stmt = ReturnStatement {
+            token: self.cur_token.clone(),
+            return_value: None,
+        };
+        self.next_token();
+
+        // TODO: We're skipping the expressions until we encounter a semicolon
+
+        while self.cur_token_is(SEMICOLON) {
+            self.next_token();
+        }
+        Some(Statement::ReturnStatement(stmt))
+    }
+
     fn cur_token_is(&self, t: TokenType) -> bool {
         self.cur_token.ttype == t
     }
+
     fn peek_token_is(&self, t: &TokenType) -> bool {
         self.peek_token.ttype == *t
     }
+
     fn peek_error(&mut self, t: &TokenType) {
         let msg = format!(
             "expected next token to be {:?}, got {:?} instead",
@@ -84,6 +107,7 @@ impl<'a> Parser<'a> {
         );
         self.errors.push(msg);
     }
+
     fn expect_peek(&mut self, t: TokenType) -> bool {
         if self.peek_token_is(&t) {
             self.next_token();
@@ -100,10 +124,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn let_statements() {
-        let input = r"let x 5;
-                          let = 10;
-                          let 838383;";
+    fn test_let_statements() {
+        let input = r"let x = 5;
+                          let y = 10;
+                          let foobar = 838383;";
         let l = Lexer::new(input);
         let mut p = Parser::new(l);
         let program = p.parse_program();
@@ -127,7 +151,10 @@ mod tests {
         ];
 
         for (i, tt) in tests.iter().enumerate() {
-            let stmt = &program.statements[i];
+            let stmt = match &program.statements[i] {
+                Statement::LetStatement(x) => x,
+                _ => panic!("Expected letStatement, found {:?}", &program.statements[1]),
+            };
 
             assert_eq!(
                 stmt.token.literal,
@@ -153,6 +180,7 @@ mod tests {
             )
         }
     }
+
     fn check_parse_errors(p: Parser) {
         let errors = p.errors();
 
@@ -164,5 +192,38 @@ mod tests {
             println!("parser error: {}", err)
         }
         panic!("parser has {} errors", errors.len())
+    }
+
+    #[test]
+    fn test_return_statements() {
+        let input = r"
+                         return 5;
+                         return 10;
+                         return 993322
+                         ";
+
+        let l = Lexer::new(input);
+        let mut p = Parser::new(l);
+        let program = p.parse_program();
+        check_parse_errors(p);
+
+        assert_eq!(
+            program.statements.len(),
+            3,
+            "Program.statements does not contain 3 statements got={}",
+            program.statements.len()
+        );
+
+        for stmt in &program.statements {
+            match stmt {
+                Statement::LetStatement(x) => panic!("stmt not ast.ReturnStatement, got={:?}", x),
+                Statement::ReturnStatement(x) => assert_eq!(
+                    x.token.literal,
+                    String::from("return"),
+                    "returnStmt.TokenLiteral not 'return', got {}",
+                    x.token.literal
+                ),
+            }
+        }
     }
 }

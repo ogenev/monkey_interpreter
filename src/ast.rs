@@ -4,13 +4,33 @@ trait Node {
     fn token_literal(&self) -> String;
 }
 
-trait Statement {}
+#[derive(Eq, PartialEq, Debug)]
+pub enum Statement<'a> {
+    LetStatement(LetStatement<'a>),
+    ReturnStatement(ReturnStatement<'a>),
+}
 
+//ToDo: remove the Options after handling the expressions
 #[derive(Eq, PartialEq, Debug)]
 pub struct LetStatement<'a> {
     pub token: Token<'a>,
     pub name: Option<Identifier<'a>>,
     pub value: Option<Experession>,
+}
+
+#[derive(Eq, PartialEq, Debug)]
+pub struct ReturnStatement<'a> {
+    pub token: Token<'a>,
+    pub return_value: Option<Experession>,
+}
+
+impl Node for Statement<'_> {
+    fn token_literal(&self) -> String {
+        match self {
+            Statement::ReturnStatement(x) => x.token.literal.clone(),
+            Statement::LetStatement(x) => x.token.literal.clone(),
+        }
+    }
 }
 
 #[derive(Eq, PartialEq, Debug)]
@@ -34,16 +54,8 @@ impl Node for Identifier<'_> {
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Program<'a> {
-    pub statements: Vec<LetStatement<'a>>,
+    pub statements: Vec<Statement<'a>>,
 }
-
-impl Node for LetStatement<'_> {
-    fn token_literal(&self) -> String {
-        self.token.literal.clone()
-    }
-}
-
-impl Statement for LetStatement<'_> {}
 
 impl Node for Program<'_> {
     fn token_literal(&self) -> String {
