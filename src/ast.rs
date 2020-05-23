@@ -12,7 +12,7 @@ pub enum Statement<'a> {
     ExpressionStatement(ExpressionStatement<'a>),
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub enum Expression<'a> {
     Identifier(Identifier<'a>),
 }
@@ -84,7 +84,7 @@ impl Node for Statement<'_> {
     }
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub struct Identifier<'a> {
     pub token: Token<'a>,
     pub value: String,

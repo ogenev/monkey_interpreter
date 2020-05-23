@@ -1,28 +1,16 @@
 use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::token::*;
-use std::collections::HashMap;
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub enum Precedence {
-    LOWEST = 1,
-    EQUALS = 2, // ==
-    LESSGREATER = 3, // > or <
-    SUM = 4, // +
-    PRODUCT = 5, // *
-    PREFIX = 6, // -X or !X
-    CALL = 7, // myFunction(X)
-}
-
-pub struct PrefixParseFn{}
-
-impl PrefixParseFn {
-    fn parse() -> Expression {}
-}
-pub struct InflixPaseFn{}
-
-impl InflixPaseFn {
-    fn parse(exp: Expression) -> Expression {}
+    LOWEST,
+    EQUALS,      // ==
+    LESSGREATER, // > or <
+    SUM,         // +
+    PRODUCT,     // *
+    PREFIX,      // -X or !X
+    CALL,        // myFunction(X)
 }
 
 pub struct Parser<'a> {
@@ -30,8 +18,6 @@ pub struct Parser<'a> {
     cur_token: Token<'a>,
     peek_token: Token<'a>,
     errors: Vec<String>,
-    prefix_parse_fn: HashMap<TokenType<'a>, PrefixParseFn>,
-    infix_parse_fn: HashMap<TokenType<'a>, InflixPaseFn>
 }
 
 impl<'a> Parser<'a> {
@@ -41,8 +27,6 @@ impl<'a> Parser<'a> {
             cur_token: Token::new(),
             peek_token: Token::new(),
             errors: vec![],
-            prefix_parse_fn: HashMap::new(), //ToDO
-            infix_parse_fn: HashMap::new() //ToDo
         };
         p.next_token();
         p.next_token();
@@ -71,15 +55,14 @@ impl<'a> Parser<'a> {
         program
     }
 
-    fn register_prefix(&mut self, token_type: TokenType, fun: PrefixParseFn) {
-       self.prefix_parse_fn.insert(token_type, fun);
+    fn prefix_fn(&mut self) -> Option<Expression<'a>> {
+        match self.cur_token.ttype {
+            TokenType::IDENT(_) => Some(self.parse_identifier()),
+            _ => None,
+        }
     }
 
-    fn register_inflix(&mut self, token_type: TokenType, fun: InflixPaseFn) {
-        self.infix_parse_fn.insert(token_type, fun);
-    }
-
-    fn parse_identifier(&self) -> Expression {
+    fn parse_identifier(&self) -> Expression<'a> {
         Expression::Identifier(Identifier {
             token: self.cur_token.clone(),
             value: self.cur_token.literal.clone(),
@@ -136,8 +119,10 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression_statement(&mut self) -> Option<Statement<'a>> {
-        let stmt = ExpressionStatement{token: self.cur_token.clone(), expression: self.parse_expression
-        (Precedence::LOWEST).unwrap()};
+        let stmt = ExpressionStatement {
+            token: self.cur_token.clone(),
+            expression: self.parse_expression(Precedence::LOWEST).unwrap(),
+        };
 
         if self.peek_token_is(&SEMICOLON) {
             self.next_token();
@@ -145,13 +130,9 @@ impl<'a> Parser<'a> {
         Some(Statement::ExpressionStatement(stmt))
     }
 
-    fn parse_expression(&self, precedence: Precedence) -> Option<Expression<'a>> {
-       let prefix = self.prefix_parse_fn.get(&self.cur_token.ttype);
-       if prefix.is_some() {
-           prefix.unwrap().parse()
-       } else {
-           None
-       }
+    fn parse_expression(&mut self, _precedence: Precedence) -> Option<Expression<'a>> {
+        let prefix = self.prefix_fn();
+        prefix
     }
 
     fn cur_token_is(&self, t: TokenType) -> bool {
@@ -288,5 +269,44 @@ mod tests {
                 _ => (),
             }
         }
+    }
+
+    #[test]
+    fn identifier_expression() {
+        let input = "foobar;";
+
+        let l = Lexer::new(input);
+        let mut p = Parser::new(l);
+        let program = p.parse_program();
+        check_parse_errors(p);
+
+        assert_eq!(
+            program.statements.len(),
+            1,
+            "Program.statements does not contain 1 statements got={}",
+            program.statements.len()
+        );
+
+        let stmt = program.statements.iter().nth(0).unwrap();
+
+        match stmt {
+            Statement::ExpressionStatement(x) => match &x.expression {
+                Expression::Identifier(y) => {
+                    if y.value != String::from("foobar") {
+                        panic!("ident.Value not {}. got={}", "foobar", y.value)
+                    } else if y.token.literal != String::from("foobar") {
+                        panic!(
+                            "ident.TokenLiteral not {}. got={}",
+                            "foobar", y.token.literal
+                        )
+                    }
+                }
+                _ => panic!("exp not *ast.Identifier. got={:?}", x.expression),
+            },
+            _ => panic!(
+                "program.Statements[0] is not ast.ExpressionStatement. got={:?}",
+                stmt
+            ),
+        };
     }
 }
